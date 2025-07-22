@@ -113,13 +113,7 @@ def main():
             # lists of ids and the corners belonging to each id
             corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
-            print(ids)
-            print(corners)
-            if len(corners) == 1:
-                print(corners[0])
-                vertices = corners[0][0]
-                print(vertices.shape)
-                print(type(vertices))
+            
             #M, mask = cv2.findHomography(src_pts, dst_pts, cv.RANSAC,5.0)
             frame = detector.findFingers(frame)
             lmsList = detector.findPosition(frame)
@@ -145,24 +139,29 @@ def main():
                 image = cv2.imread(ruta, cv2.IMREAD_COLOR)
                 resized_image = cv2.resize(image, (480, 480))
                 vertices_origen = np.array([[0, 0],[480,0], [480, 480], [0,480]])
-                print(vertices_origen.shape)
+                #print(vertices_origen.shape)
+                if len(corners) == 1:
+                    print(corners[0])
+                    vertices = corners[0][0]
+                    print(vertices.shape)
+                    print(type(vertices))
 
-                M, _ = cv2.findHomography(vertices_origen, vertices)
+                    M, _ = cv2.findHomography(vertices_origen, vertices)
 
-                warped_img = cv2.warpPerspective(resized_image, M, (640,480))
-                img2gray = cv2.cvtColor(warped_img,cv2.COLOR_BGR2GRAY)
-                ret, mask = cv2.threshold(img2gray, 10, 255, cv2.THRESH_BINARY)
-                mask_inv = cv2.bitwise_not(mask)
+                    warped_img = cv2.warpPerspective(resized_image, M, (640,480))
+                    img2gray = cv2.cvtColor(warped_img,cv2.COLOR_BGR2GRAY)
+                    ret, mask = cv2.threshold(img2gray, 10, 255, cv2.THRESH_BINARY)
+                    mask_inv = cv2.bitwise_not(mask)
 
-                #img1_bg = cv.bitwise_and(,roi,mask = mask_inv)
-                img1_fg = cv2.bitwise_and(ar,ar,mask = mask_inv)
-                img2_fg = cv2.bitwise_and(warped_img,warped_img,mask = mask)
-                dst = cv2.add(img1_fg,img2_fg)
-                #cv2.imshow("Prueba",resized_image) 
-                #cv2.imshow("Transformada", warped_img)s
+                    #img1_bg = cv.bitwise_and(,roi,mask = mask_inv)
+                    img1_fg = cv2.bitwise_and(ar,ar,mask = mask_inv)
+                    img2_fg = cv2.bitwise_and(warped_img,warped_img,mask = mask)
+                    dst = cv2.add(img1_fg,img2_fg)
+                    #cv2.imshow("Prueba",resized_image) 
+                    #cv2.imshow("Transformada", warped_img)s
 
-                #cv2.imshow("Transformada2", mask)
-                cv2.imshow("Salida", dst)
+                    #cv2.imshow("Transformada2", mask)
+                    cv2.imshow("Salida", dst)
 
             else:
                 print("No hay ninguna mano.")

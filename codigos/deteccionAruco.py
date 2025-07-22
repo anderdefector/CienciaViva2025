@@ -1,42 +1,23 @@
 import numpy as np
 import cv2, PIL
 from cv2 import aruco
-
-
-
+from scipy.spatial.transform import Rotation as R
 
 cap = cv2.VideoCapture(0)
-
-#im_src = cv2.imread("Img/muse.jpg")
-#im_src = cv2.flip(im_src, 0)
-
-#width, height, channels = im_src.shape
-
-
-
 
 gray=0
 
 #Camara PS3
 
-cameraMatrix = np.array([[5.109663638795043994e+02, 0, 3.268095902480743007e+02], 
-                        [ 0, 5.103928144841747780e+02, 2.631678319887266753e+02], 
-                        [0.000000, 0.000000, 1.000000]])
-dist = np.array([[-1.504925480024328077e-01], 
-                [2.893519143083206902e-01], 
-                [2.807256039291659497e-03], 
-                [4.306493998655061203e-03], 
-                [-1.784404386540009158e-01]])
-
-
-
+cameraMatrix = np.loadtxt("FotosCalibracion/cameraMatrix.txt", delimiter=",")
+dist = np.loadtxt("FotosCalibracion/cameraDistortion.txt", delimiter=",")
 
 
 while (True):
     ret, frame = cap.read()
-
+    
     frame = cv2.undistort(frame, cameraMatrix, dist)
-
+    
     # operations on the frame
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -68,7 +49,24 @@ while (True):
         # rvet and tvec-different from camera coefficients
         rvec, tvec ,_ = aruco.estimatePoseSingleMarkers(corners, 0.10, cameraMatrix, dist)
         #print(rvec)
-        print(tvec)
+        #print(tvec.shape)
+        print("Posición X: "+str(tvec[0][0][0])+ " Y: "+str(tvec[0][0][1]) + " Z: "+str(tvec[0][0][2]))
+        rotation_matrix, _ = cv2.Rodrigues(rvec[0])
+        rotation = R.from_matrix(rotation_matrix)
+
+        # Get Euler angles in degrees
+        # 'xyz' means:
+        # euler_x (roll) = rotation around X-axis
+        # euler_y (pitch) = rotation around Y-axis
+        # euler_z (yaw) = rotation around Z-axis
+        euler_angles_degrees = rotation.as_euler('xyz', degrees=True)
+
+        print(f"\nEuler Angles (XYZ convention, degrees):")
+        print(f"  Rotation around X-axis (Roll): {euler_angles_degrees[0]:.2f} degrees")
+        print(f"  Rotation around Y-axis (Pitch): {euler_angles_degrees[1]:.2f} degrees")
+        print(f"  Rotation around Z-axis (Yaw): {euler_angles_degrees[2]:.2f} degrees")
+        #print("Rotación X: "+str(rvec[0][0][0])+ " Y: "+str(rvec[0][0][1]) + " Z: "+str(rvec[0][0][2]))
+        #print(tvec[0])
         #(rvec-tvec).any() # get rid of that nasty numpy value array error
 
         for i in range(0, ids.size):
@@ -85,14 +83,14 @@ while (True):
             strg += str(ids[i][0])+', '
 
 
-        traslaciones = "X : {:.1f} Y : {:.1f} Z : {:.1f} ".format(tvec[0], tvec[1], tvec[2])
-        cv2.putText(frame, "Id: " + strg, (0,64), font, 0.5, (0,255,0),2,cv2.LINE_AA)
-        cv2.putText(frame, traslaciones, (0,72), font, 0.5, (0,255,0),2,cv2.LINE_AA)
+        #traslaciones = "X : {:.1f} Y : {:.1f} Z : {:.1f} ".format(tvec[0], tvec[1], tvec[2])
+        cv2.putText(frame, "Id: " + strg, (0,64), font, 0.5, (0,0,255),2,cv2.LINE_AA)
+        #cv2.putText(frame, traslaciones, (0,72), font, 0.5, (0,255,0),2,cv2.LINE_AA)
 
     else:
         # code to show 'No Ids' when no markers are found
 
-        cv2.putText(frame, "No Ids", (0,64), font, 1, (0,255,0),2,cv2.LINE_AA)
+        cv2.putText(frame, "No Ids", (0,64), font, 1, (0,0,255),2,cv2.LINE_AA)
 
     # display the resulting frame
     cv2.imshow('frame',frame)

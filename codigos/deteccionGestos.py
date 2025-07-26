@@ -101,7 +101,7 @@ def main():
         while True:
             ret, frame = cap.read()
 
-            frame = detector.findFingers(frames)
+            frame = detector.findFingers(frame)
             lmsList = detector.findPosition(frame)
             if(lmsList[1] != []):
                 dedos = detector.findFingerUp()
